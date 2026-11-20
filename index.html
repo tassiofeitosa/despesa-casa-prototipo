@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Despesa Casa — Protótipo</title>
+<style>
+:root{
+  --bg:#eef1ee; --surface:#ffffff; --surface2:#f3f6f3; --ink:#14201a; --muted:#5d6b63; --line:#dde4de;
+  --accent:#1f8f5f; --accent-ink:#ffffff; --accent-soft:#dff3e8; --warn:#c2410c; --warn-soft:#ffe9dc;
+  --blue:#2f6fb3; --amber:#b7791f; --chat-bg:#e9efe9; --bubble-me:#d6f0dc; --bubble-bot:#ffffff; --shadow:0 10px 40px rgba(20,32,26,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c110e; --surface:#16201a; --surface2:#1d2923; --ink:#e8f1ec; --muted:#9fb0a6; --line:#2a3830;
+    --accent:#3ec283; --accent-ink:#08150e; --accent-soft:#1b3a2b; --warn:#ff9a5c; --warn-soft:#3a2418;
+    --blue:#6fa8e6; --amber:#e3b04b; --chat-bg:#101814; --bubble-me:#1d4a31; --bubble-bot:#1d2923; --shadow:0 10px 40px rgba(0,0,0,.6);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;line-height:1.35;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.stage{display:flex;gap:32px;justify-content:center;align-items:flex-start;padding:24px 16px}
+.side{width:230px;position:sticky;top:24px;font-size:13px}
+.side h1{font-size:17px;margin-bottom:4px}
+.side p.note{margin:8px 0 14px;padding:8px 10px;border:1px dashed var(--accent);border-radius:10px;background:var(--accent-soft);color:var(--ink)}
+.side a{display:block;padding:7px 10px;border-radius:8px;color:var(--muted)}
+.side a:hover,.side a.on{background:var(--surface);color:var(--ink);font-weight:600}
+.phone{position:relative;width:390px;height:844px;background:var(--surface);border-radius:38px;box-shadow:var(--shadow);border:8px solid #101613;overflow:hidden;flex:none}
+.screen{display:none;position:absolute;inset:0;flex-direction:column;background:var(--surface)}
+.screen.on{display:flex}
+.status{height:30px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:6px 22px 0;font-size:12px;font-weight:600}
+.body{flex:1;overflow-y:auto;padding:8px 20px 20px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.top{display:flex;align-items:center;gap:10px;padding:6px 14px 4px;flex:none}
+.top h2{font-size:18px;flex:1}
+.back{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--surface2);flex:none}
+h3{font-size:22px;line-height:1.2}
+.sub{color:var(--muted);font-size:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:14px;padding:14px 16px;font-size:16px;width:100%;flex:none}
+.btn.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:9px 12px;font-size:14px;border-radius:10px}
+.hot{outline:2px dashed var(--accent);outline-offset:3px;animation:pulse 1.8s infinite}
+@keyframes pulse{50%{outline-color:transparent}}
+@media (prefers-reduced-motion:reduce){.hot{animation:none}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+.input{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:16px;display:flex;align-items:center;gap:8px;color:var(--ink)}
+.card{background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:14px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.chip{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.b{font-weight:700}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bar i.w{background:var(--warn)}
+.ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.ico.am{background:#fff3d6;color:var(--amber)}
+.ico.bl{background:#dde9f7;color:var(--blue)}
+.tabs{flex:none;display:flex;border-top:1px solid var(--line);background:var(--surface);padding:6px 6px 14px}
+.tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:5px;border-radius:10px;font-weight:600}
+.tabs a.on{color:var(--accent)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;color:var(--accent)}
+.logo{width:32px;height:32px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.alert{display:flex;gap:10px;background:var(--warn-soft);border:1px solid var(--warn);color:var(--ink);border-radius:14px;padding:11px 12px;align-items:flex-start;flex:none}
+.alert svg{color:var(--warn);margin-top:1px}
+.alert.ok{background:var(--accent-soft);border-color:var(--accent)}
+.alert.ok svg{color:var(--accent)}
+.stepper{display:flex;gap:5px}
+.stepper i{flex:1;height:4px;border-radius:9px;background:var(--line)}
+.stepper i.on{background:var(--accent)}
+.avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex:none}
+.avatar.xs{width:20px;height:20px;font-size:10px;display:inline-grid;vertical-align:middle}
+.av-a{background:#d0629a}.av-t{background:#3b82c4}
+.chat{background:var(--chat-bg);flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.chat::-webkit-scrollbar{display:none}
+.msg{max-width:84%;padding:6px 10px;border-radius:14px;font-size:14px;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.msg.me{align-self:flex-end;background:var(--bubble-me);border-top-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--bubble-bot);border-top-left-radius:4px}
+.msg .who{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px}
+.msg .who.a{color:#d0629a}.msg .who.t{color:#3b82c4}
+.msg .t{font-size:10px;color:var(--muted);text-align:right;margin-top:2px}
+.qr-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.qr-row span{border:1px solid var(--accent);color:var(--accent);border-radius:99px;padding:5px 11px;font-size:13px;font-weight:700;background:var(--surface)}
+.day{align-self:center;background:var(--surface);color:var(--muted);font-size:11px;padding:3px 10px;border-radius:8px}
+.chatbar{flex:none;display:flex;gap:8px;padding:8px 10px 16px;background:var(--surface);align-items:center}
+.chatbar .input{flex:1;padding:9px 14px;border-radius:99px;color:var(--muted);font-size:14px}
+.send{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.qrbox{width:150px;height:150px;margin:0 auto;border-radius:12px;background:conic-gradient(var(--ink) 25%,transparent 0 50%,var(--ink) 0 75%,transparent 0) 0 0/18px 18px,var(--surface);border:10px solid var(--surface);outline:1px solid var(--line);position:relative}
+.qrbox b{position:absolute;width:40px;height:40px;border:6px solid var(--ink);background:var(--surface)}
+.list-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex:none}
+.neg{font-weight:700}
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:3px;border:1px solid var(--line)}
+.seg span{flex:1;text-align:center;font-size:13px;font-weight:600;padding:6px;border-radius:8px;color:var(--muted)}
+.seg span.on{background:var(--accent);color:var(--accent-ink)}
+.hb{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+.hb .l{width:74px}.hb .bar{flex:1;height:14px}.hb .v{width:82px;text-align:right;font-weight:600}
+.price{font-size:26px;font-weight:800;white-space:nowrap}
+.b[style*="font-size:16px"],.chip,.b[style*="font-size:17px"],.b[style*="font-size:18px"],.neg{white-space:nowrap}
+.top h2{padding-left:6px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.plan{border:1px solid var(--line);border-radius:14px;padding:11px;background:var(--surface2);font-size:12.5px}
+.plan.pro{border:2px solid var(--accent);background:var(--accent-soft)}
+.plan li{list-style:none;display:flex;gap:5px;margin-top:4px}
+.plan li svg{width:14px;height:14px;color:var(--accent);margin-top:2px}
+@media (max-width:760px){
+  .side{display:none}
+  .stage{padding:0}
+  .phone{width:100vw;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .body{padding-left:14px;padding-right:14px}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+<nav class="side" aria-label="Índice de telas">
+  <h1>Despesa Casa</h1>
+  <p class="note">Protótipo navegável — clique nos elementos destacados</p>
+  <a href="#tela-1">1 · Boas-vindas</a>
+  <a href="#tela-2">2 · Cadastro rápido</a>
+  <a href="#tela-3">3 · Configurar casa</a>
+  <a href="#tela-4">4 · Conectar ao WhatsApp</a>
+  <a href="#tela-5">5 · Conversa no grupo</a>
+  <a href="#tela-6">6 · Painel do ciclo</a>
+  <a href="#tela-7">7 · Lançamentos</a>
+  <a href="#tela-8">8 · Quem gastou o quê</a>
+  <a href="#tela-9">9 · Resumo semanal</a>
+  <a href="#tela-10">10 · Metas e Planos</a>
+</nav>
+
+<main class="phone" id="phone">
+
+<!-- 1 -->
+<section class="screen" id="tela-1">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="body" style="justify-content:space-between;padding-top:18px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>Despesa Casa</div>
+      <h3 style="font-size:30px;margin-top:10px">Controle os gastos da casa só conversando.</h3>
+      <p class="sub" style="font-size:16px">Mande “45,90 mercado (crédito)” no grupo da família. A gente organiza cartão, vale e conta, cada um no seu mês.</p>
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <div class="row"><span class="ico"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12z"/></svg></span><div><div class="b">Lance pelo grupo</div><div class="small muted">Valor, categoria e forma de pagamento entendidos sozinhos</div></div></div>
+        <div class="row"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></span><div><div class="b">3 saldos separados</div><div class="small muted">Cartão (26 a 25), Vale e Conta</div></div></div>
+        <div class="row"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><div><div class="b">Previsão da fatura</div><div class="small muted">Alerta antes de estourar o teto</div></div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a class="btn hot" href="#tela-2">Começar grátis</a>
+      <div class="row" style="justify-content:center;color:var(--muted);font-size:13px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Não pedimos senha do banco. Nunca.</div>
+      <div class="small muted" style="text-align:center">Pronto em 3 minutos · Grátis para 2 pessoas</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="screen" id="tela-2">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top"><a class="back hot" href="#tela-1" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a><h2>Cadastro rápido</h2><span class="small muted">1 de 3</span></div>
+  <div class="body">
+    <div class="stepper"><i class="on"></i><i></i><i></i></div>
+    <h3 style="margin-top:6px">Vamos começar pelo básico</h3>
+    <p class="sub">Leva menos de um minuto.</p>
+    <div class="field"><label>Seu nome</label><div class="input">Ana Ribeiro</div></div>
+    <div class="field"><label>Seu WhatsApp</label><div class="input"><span class="muted">+55</span> (11) 98765-4321</div></div>
+    <div class="field"><label>Nome da casa</label><div class="input">Casa da Ana e do Tássio</div></div>
+    <div class="alert ok"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div class="small">Usamos seu número só para reconhecer quem lançou cada gasto. Sem senha do banco, sem acesso a contas.</div></div>
+    <div class="sp"></div>
+    <a class="btn hot" href="#tela-3">Continuar</a>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="screen" id="tela-3">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top"><a class="back hot" href="#tela-2" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a><h2>Configurar a casa</h2><span class="small muted">2 de 3</span></div>
+  <div class="body">
+    <div class="stepper"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="field"><label>Ciclo do cartão de crédito</label>
+      <div class="row"><div class="input" style="flex:1"><span class="muted">Começa dia</span> <b>26</b></div><div class="input" style="flex:1"><span class="muted">Fecha dia</span> <b>25</b></div></div>
+      <span class="small muted">Ciclo atual: 26/out a 25/nov</span></div>
+    <div class="field"><label>Vale-alimentação por mês</label><div class="input"><span class="muted">R$</span> 900,00</div></div>
+    <div class="field"><label>Teto da fatura (alerta)</label><div class="input"><span class="muted">R$</span> 2.800,00</div>
+      <span class="small muted">Avisamos no grupo ao passar de 80% e na previsão.</span></div>
+    <div class="field"><label>Convidar membros (Grátis: até 2)</label>
+      <div class="card" style="display:flex;flex-direction:column;gap:8px">
+        <div class="row"><span class="avatar av-a">A</span><div class="sp b">Ana (você)</div><span class="chip">Admin</span></div>
+        <div class="row"><span class="avatar av-t">T</span><div class="sp"><div class="b">Tássio</div><div class="small muted">(11) 91234-5678</div></div><span class="chip on">Convidado</span></div>
+        <button class="btn ghost sm"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Convidar por link</button>
+      </div></div>
+    <div class="sp"></div>
+    <a class="btn hot" href="#tela-4">Continuar</a>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="screen" id="tela-4">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top"><a class="back hot" href="#tela-3" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a><h2>Conectar ao WhatsApp</h2><span class="small muted">3 de 3</span></div>
+  <div class="body">
+    <div class="stepper"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="card"><div class="row"><span class="avatar" style="background:var(--accent)">1</span><div class="b">Salve o número do bot</div></div>
+      <div class="input" style="margin-top:8px;justify-content:space-between"><b>+55 11 4000-1234</b><span class="chip">Copiar</span></div></div>
+    <div class="card"><div class="row"><span class="avatar" style="background:var(--accent)">2</span><div class="b">Adicione ao grupo da família</div></div>
+      <p class="small muted" style="margin:6px 0 10px">Ou escaneie o QR code com o celular para abrir o convite.</p>
+      <div class="qrbox"><b style="left:6px;top:6px"></b><b style="right:6px;top:6px"></b><b style="left:6px;bottom:6px"></b></div></div>
+    <div class="card"><div class="row"><span class="avatar" style="background:var(--accent)">3</span><div class="b">Teste o envio</div></div>
+      <p class="small muted" style="margin:6px 0 0">Mandamos uma mensagem de teste para o grupo “Casa”.</p></div>
+    <div class="sp"></div>
+    <a class="btn hot" href="#tela-5"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>Testar envio</a>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="screen" id="tela-5">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top" style="border-bottom:1px solid var(--line);padding-bottom:8px">
+    <a class="back" href="#tela-4" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <span class="avatar" style="background:var(--accent);width:36px;height:36px">C</span>
+    <div class="sp"><div class="b">Casa</div><div class="small muted">Ana, Tássio, bot</div></div>
+    <a class="chip hot" href="#tela-6">Ver painel</a>
+  </div>
+  <div class="chat" style="gap:6px;padding:8px 12px">
+    <div class="day">Hoje</div>
+    <div class="msg me"><div class="who a">Ana</div>45,90 mercado (crédito)<div class="t">12:41</div></div>
+    <div class="msg bot"><div class="who">Despesa Casa</div>Anotado, Ana!<br>🛒 <b>R$ 45,90</b> · Mercado<br>💳 Crédito · hoje (19/nov)<br><span class="muted">Total do ciclo no cartão: <b>R$ 2.184,30</b></span><div class="t">12:41</div></div>
+    <div class="msg me"><div class="who t">Tássio</div>padaria 12<div class="t">12:58</div></div>
+    <div class="msg bot"><div class="who">Despesa Casa</div>Entendi <b>R$ 12,00</b> em Padaria. Como você pagou?
+      <div class="qr-row"><span>Crédito</span><span>Vale</span><span>Débito/Pix</span><span>Dinheiro</span></div><div class="t">12:58</div></div>
+    <div class="msg me"><div class="who t">Tássio</div>vale<div class="t">12:59</div></div>
+    <div class="msg bot"><div class="who">Despesa Casa</div>Pronto, Tássio!<br>🥖 <b>R$ 12,00</b> · Padaria<br>🍽️ Vale · hoje (19/nov)<br><span class="muted">Saldo do vale: <b>R$ 412,60</b></span><div class="t">12:59</div></div>
+    </div>
+  <div class="chatbar"><div class="input">Mensagem</div><span class="send"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span></div>
+</section>
+
+<!-- 6 -->
+<section class="screen" id="tela-6">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="body" style="gap:10px">
+    <div class="row"><div><div class="small muted">Casa da Ana e do Tássio</div><div class="b" style="font-size:20px">Ciclo 26/out – 25/nov</div></div><div class="sp"></div>
+      <a class="back hot" href="#tela-9" aria-label="Notificações" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><i style="position:absolute;top:6px;right:7px;width:9px;height:9px;border-radius:50%;background:var(--warn)"></i></a></div>
+    <a class="alert hot" href="#tela-9"><svg viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg><div><div class="b">Fatura deve passar do teto</div><div class="small">Previsão R$ 3.120,00 · teto R$ 2.800,00. Toque para ver o resumo da semana.</div></div></a>
+    <div class="card" style="flex:none">
+      <div class="row"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></span><div class="sp"><div class="small muted">Cartão · fatura atual</div><div class="price" style="font-size:24px">R$ 2.184,30</div></div><span class="chip" style="color:var(--warn)">fecha em 6d</span></div>
+      <div class="row small" style="margin:10px 0 4px"><span>Previsão R$ 3.120,00</span><span class="sp"></span><span class="muted">teto R$ 2.800,00</span></div>
+      <div class="bar"><i class="w" style="width:100%"></i></div>
+      <div class="small muted" style="margin-top:4px">111% do teto na previsão · R$ 320,00 acima</div>
+    </div>
+    <div class="row" style="align-items:stretch;flex:none">
+      <div class="card sp"><div class="row"><span class="ico am"><svg viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 0 0 3 3v7M9 3v6M17 3c-2 2-2 6 0 8v10"/></svg></span><div><div class="small muted">Vale</div><div class="b" style="font-size:16px">R$ 412,60</div></div></div>
+        <div class="bar" style="margin:10px 0 4px"><i style="width:46%;background:var(--amber)"></i></div><div class="small muted">de R$ 900,00</div></div>
+      <div class="card sp"><div class="row"><span class="ico bl"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v9M19 10v9M9 10v9M15 10v9M3 21h18"/></svg></span><div><div class="small muted">Conta</div><div class="b" style="font-size:16px">R$ 1.036,40</div></div></div>
+        <div class="small muted" style="margin-top:10px">Pix/débito desde 26/out</div></div>
+    </div>
+    <div class="card" style="flex:none"><div class="row"><span class="ico am"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/></svg></span><div class="sp"><div class="b" style="font-size:14px">Vale projetado até dia 25</div><div class="small muted">No ritmo atual, sobram</div></div><div class="b" style="font-size:18px;color:var(--amber)">R$ 38,00</div></div></div>
+    <a class="btn ghost hot" href="#tela-5"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12z"/></svg>Abrir WhatsApp</a>
+  </div>
+  <nav class="tabs">
+    <a class="on" href="#tela-6"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Painel</a>
+    <a href="#tela-7"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lançamentos</a>
+    <a href="#tela-8"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Relatórios</a>
+    <a href="#tela-10"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Metas</a>
+  </nav>
+</section>
+
+<!-- 7 -->
+<section class="screen" id="tela-7">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top"><h2>Lançamentos</h2><span class="small muted">26/out – 25/nov</span></div>
+  <div class="body" style="gap:8px">
+    <div class="row" style="flex-wrap:wrap;gap:6px;flex:none"><span class="chip on">Todos</span><span class="chip">Crédito</span><span class="chip">Vale</span><span class="chip">Pix/Débito</span></div>
+    <div class="row" style="gap:6px;flex:none"><span class="chip on">Todos</span><span class="chip"><span class="avatar xs av-a">A</span>Ana</span><span class="chip"><span class="avatar xs av-t">T</span>Tássio</span></div>
+    <div class="small muted" style="margin-top:4px">Hoje, 19/nov</div>
+    <div class="list-item"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg></span><div class="sp"><div class="b">Mercado</div><div class="small muted">Ana · Crédito</div></div><div class="neg">R$ 45,90</div></div>
+    <div class="list-item"><span class="ico am"><svg viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 0 0 3 3v7M9 3v6M17 3c-2 2-2 6 0 8v10"/></svg></span><div class="sp"><div class="b">Padaria</div><div class="small muted">Tássio · Vale</div></div><div class="neg">R$ 12,00</div></div>
+    <div class="small muted" style="margin-top:4px">Ontem, 18/nov</div>
+    <div class="list-item"><span class="ico bl"><svg viewBox="0 0 24 24"><path d="M5 17h14M6 17l1-6h10l1 6M8 11l1-5h6l1 5"/></svg></span><div class="sp"><div class="b">Combustível</div><div class="small muted">Tássio · Pix/Débito</div></div><div class="neg">R$ 180,00</div></div>
+    <div class="list-item"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/></svg></span><div class="sp"><div class="b">Farmácia</div><div class="small muted">Ana · Crédito</div></div><div class="neg">R$ 67,35</div></div>
+    <div class="list-item"><span class="ico am"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg></span><div class="sp"><div class="b">Hortifruti</div><div class="small muted">Ana · Vale</div></div><div class="neg">R$ 58,70</div></div>
+    <div class="small muted" style="margin-top:4px">17/nov</div>
+    <div class="list-item"><span class="ico" style="background:#e9e1f7;color:#7b4fc4"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span><div class="sp"><div class="b">Streaming</div><div class="small muted">Tássio · Crédito</div></div><div class="neg">R$ 39,90</div></div>
+    <div class="list-item"><span class="ico bl"><svg viewBox="0 0 24 24"><path d="M9 21h6M10 17h4M12 3a6 6 0 0 0-4 10.5V17h8v-3.5A6 6 0 0 0 12 3z"/></svg></span><div class="sp"><div class="b">Conta de luz</div><div class="small muted">Ana · Pix/Débito</div></div><div class="neg">R$ 214,18</div></div>
+  </div>
+  <nav class="tabs">
+    <a href="#tela-6"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Painel</a>
+    <a class="on" href="#tela-7"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lançamentos</a>
+    <a href="#tela-8"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Relatórios</a>
+    <a href="#tela-10"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Metas</a>
+  </nav>
+</section>
+
+<!-- 8 -->
+<section class="screen" id="tela-8">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top"><h2>Relatórios</h2><span class="chip">Exportar p/ Sheets</span></div>
+  <div class="body">
+    <div class="seg"><span class="on">Por pessoa</span><span>Por categoria</span></div>
+    <div class="card" style="flex:none">
+      <div class="b" style="margin-bottom:6px">Quem gastou o quê · R$ 3.370,70</div>
+      <div class="hb"><span class="l"><span class="avatar xs av-a">A</span> Ana</span><div class="bar"><i style="width:56%;background:#d0629a"></i></div><span class="v">R$ 1.887,60</span></div>
+      <div class="hb"><span class="l"><span class="avatar xs av-t">T</span> Tássio</span><div class="bar"><i style="width:44%;background:#3b82c4"></i></div><span class="v">R$ 1.483,10</span></div>
+    </div>
+    <div class="card" style="flex:none">
+      <div class="b" style="margin-bottom:6px">Por categoria</div>
+      <div class="hb"><span class="l">Mercado</span><div class="bar"><i style="width:100%"></i></div><span class="v">R$ 1.120,00</span></div>
+      <div class="hb"><span class="l">Moradia</span><div class="bar"><i style="width:78%"></i></div><span class="v">R$ 874,18</span></div>
+      <div class="hb"><span class="l">Transporte</span><div class="bar"><i style="width:48%"></i></div><span class="v">R$ 540,00</span></div>
+      <div class="hb"><span class="l">Saúde</span><div class="bar"><i style="width:30%"></i></div><span class="v">R$ 336,50</span></div>
+      <div class="hb"><span class="l">Lazer</span><div class="bar"><i style="width:24%"></i></div><span class="v">R$ 268,92</span></div>
+      <div class="hb"><span class="l">Outros</span><div class="bar"><i style="width:19%"></i></div><span class="v">R$ 231,10</span></div>
+    </div>
+    <div class="card row" style="flex:none"><span class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg></span><div class="sp"><div class="b">Google Sheets sincronizado</div><div class="small muted">Última sincronização hoje, 13:00</div></div></div>
+  </div>
+  <nav class="tabs">
+    <a href="#tela-6"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Painel</a>
+    <a href="#tela-7"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lançamentos</a>
+    <a class="on" href="#tela-8"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Relatórios</a>
+    <a href="#tela-10"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Metas</a>
+  </nav>
+</section>
+
+<!-- 9 -->
+<section class="screen" id="tela-9">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top" style="border-bottom:1px solid var(--line);padding-bottom:8px">
+    <a class="back hot" href="#tela-6" aria-label="Voltar ao painel"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <span class="avatar" style="background:var(--accent);width:36px;height:36px">C</span>
+    <div class="sp"><div class="b">Casa</div><div class="small muted">Ana, Tássio, bot</div></div>
+  </div>
+  <div class="chat">
+    <div class="day">Domingo, 16/nov · 20:00</div>
+    <div class="msg bot" style="max-width:94%"><div class="who">Despesa Casa</div>
+      📊 <b>Resumo da semana (10 a 16/nov)</b><br><br>
+      💸 Gastamos <b>R$ 812,40</b> (semana anterior: R$ 655,10)<br>
+      💳 Cartão R$ 498,30 · 🍽️ Vale R$ 164,00 · 🏦 Conta R$ 150,10<br><br>
+      🏆 Maior categoria: <b>Mercado</b> (R$ 310,25)<br>
+      👥 Ana R$ 470,20 · Tássio R$ 342,20<br><br>
+      ⚠️ Previsão da fatura: <b>R$ 3.120,00</b>, acima do teto de R$ 2.800,00. Faltam 6 dias para fechar.<br>
+      🍽️ Vale: sobram R$ 38,00 até dia 25 se mantiver o ritmo.<br><br>
+      Dica: segurar o cartão em cerca de R$ 53/dia mantém a fatura no teto.<div class="t">20:00</div></div>
+    <div class="msg me"><div class="who a">Ana</div>Vamos pagar o mercado no débito essa semana 😅<div class="t">20:04</div></div>
+    <div class="msg me"><div class="who t">Tássio</div>Fechado 👍<div class="t">20:05</div></div>
+  </div>
+  <div style="flex:none;padding:10px 20px 18px;background:var(--surface)"><a class="btn hot" href="#tela-6">Voltar ao painel</a></div>
+</section>
+
+<!-- 10 -->
+<section class="screen" id="tela-10">
+  <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+  <div class="top"><h2>Metas e Planos</h2></div>
+  <div class="body" style="gap:10px">
+    <div class="card" style="flex:none">
+      <div class="row"><span class="ico"><svg viewBox="0 0 24 24"><path d="M2 12l10-9 10 9M5 10v10h14V10"/></svg></span><div class="sp"><div class="b">Viagem de fim de ano</div><div class="small muted">Meta do casal · até 15/dez</div></div><div class="b">68%</div></div>
+      <div class="bar" style="margin:10px 0 4px"><i style="width:68%"></i></div>
+      <div class="row small"><span>R$ 2.040,00 guardados</span><span class="sp"></span><span class="muted">de R$ 3.000,00</span></div>
+      <div class="row small muted" style="margin-top:6px;gap:5px"><span class="avatar xs av-a">A</span>R$ 1.240,00 <span class="avatar xs av-t" style="margin-left:6px">T</span>R$ 800,00</div>
+    </div>
+    <div class="card row" style="flex:none"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="sp"><div class="b">Reserva de emergência</div><div class="bar" style="margin-top:6px"><i style="width:32%"></i></div></div><div class="b">32%</div></div>
+    <div class="b">Planos</div>
+    <div class="plans" style="flex:none">
+      <div class="plan"><div class="b">Grátis</div><div class="price" style="font-size:20px">R$ 0</div><div class="small muted">&nbsp;</div>
+        <ul><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>2 pessoas</li><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>60 lançamentos/mês</li><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Bot no grupo</li></ul></div>
+      <div class="plan pro"><div class="b">Plano Casa</div><div class="price" style="font-size:20px">R$ 12,90<span class="small muted">/mês</span></div><div class="small muted">ou R$ 119,00/ano</div>
+        <ul><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>5 pessoas</li><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Lançamentos ilimitados</li><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Painel e previsões</li><li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Alertas e exportação</li></ul></div>
+    </div>
+    <a class="btn hot" href="#tela-6">Assinar Plano Casa</a>
+    <div class="small muted" style="text-align:center">Cancele quando quiser · Nunca pedimos senha do banco</div>
+  </div>
+  <nav class="tabs">
+    <a href="#tela-6"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Painel</a>
+    <a href="#tela-7"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lançamentos</a>
+    <a href="#tela-8"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Relatórios</a>
+    <a class="on" href="#tela-10"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Metas</a>
+  </nav>
+</section>
+
+</main>
+</div>
+<script>
+(function(){
+  var screens=document.querySelectorAll('.screen'),links=document.querySelectorAll('.side a');
+  function show(){
+    var h=location.hash||'#tela-1';
+    if(!/^#tela-\d+$/.test(h)||!document.querySelector(h))h='#tela-1';
+    screens.forEach(function(s){s.classList.toggle('on','#'+s.id===h)});
+    links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')===h)});
+    var b=document.querySelector(h+' .body, '+h+' .chat');if(b)b.scrollTop=0;
+  }
+  window.addEventListener('hashchange',show);show();
+})();
+</script>
+</body>
+</html>
